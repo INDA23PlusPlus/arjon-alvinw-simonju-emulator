@@ -46,51 +46,60 @@ impl Display for Instruction {
     }
 }
 
-impl From<[u8; 4]> for Instruction {
-    fn from(value: [u8; 4]) -> Self {
+fn to_registry(val: u8) -> Result<Registry, std::io::Error> {
+    if val > 16 {
+        panic!(); // TODO error
+    }
+    return Ok(val as Registry);
+}
+
+impl TryFrom<[u8; 4]> for Instruction {
+    type Error = std::io::Error; // todo wait for Simons changes
+
+    fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
         const INSTRUCTION: u8 = 0b1111_0000;
         const REGISTRY_1: u8 = 0b0000_1111;
         const REGISTRY_2: u8 = 0b1111_0000;
         const REGISTRY_3: u8 = 0b0000_1111;
 
-        match value[0] & INSTRUCTION {
+        Ok(match value[0] & INSTRUCTION {
             NOOP => Instruction::NOOP,
             HALT => Instruction::HALT,
             JUMP => Instruction::JUMP(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                (value[1] & REGISTRY_3) as usize, 
+                to_registry(value[0] & REGISTRY_1)?, 
+                to_registry(value[1] & REGISTRY_2 >> 4)?,
+                to_registry(value[1] & REGISTRY_3)?, 
                 AddressImmediate::from_be_bytes([value[2], value[3]])
             ),
             IOUT => Instruction::IOUT(
-                (value[0] & REGISTRY_1) as usize,
+                to_registry(value[0] & REGISTRY_1)?,
             ),
             IADD => Instruction::IADD(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                (value[1] & REGISTRY_3) as usize, 
+                to_registry(value[0] & REGISTRY_1)?, 
+                to_registry(value[1] & REGISTRY_2 >> 4)?,
+                to_registry(value[1] & REGISTRY_3)?, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             ISUB => Instruction::ISUB(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                (value[1] & REGISTRY_3) as usize, 
+                to_registry(value[0] & REGISTRY_1)?, 
+                to_registry(value[1] & REGISTRY_2 >> 4)?,
+                to_registry(value[1] & REGISTRY_3)?, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             IMUL => Instruction::IMUL(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                (value[1] & REGISTRY_3) as usize, 
+                to_registry(value[0] & REGISTRY_1)?, 
+                to_registry(value[1] & REGISTRY_2 >> 4)?,
+                to_registry(value[1] & REGISTRY_3)?, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             IDIV => Instruction::IDIV(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                (value[1] & REGISTRY_3) as usize, 
+                to_registry(value[0] & REGISTRY_1)?, 
+                to_registry(value[1] & REGISTRY_2 >> 4)?,
+                to_registry(value[1] & REGISTRY_3)?, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             _ => Instruction::ERROR,
-        }
+        })
         
     }
 }

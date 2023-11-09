@@ -12,25 +12,21 @@ impl<const N: usize> RegistryBank<{N}> {
         }
     }
 
-    pub fn read_i16(&self, registry: Registry) -> Option<i16> {
-        let value = self.registries.get(registry)?;
-        Some(i16::from_be_bytes(*value))
+    pub fn read_i16(&self, registry: Registry) -> i16 {
+        let value = self.registries[registry];
+        i16::from_be_bytes(value)
     }
 
-    pub fn read_u16(&self, registry: Registry) -> Option<u16> {
-        let value = self.registries.get(registry)?;
-        Some(u16::from_be_bytes(*value))
+    pub fn read_u16(&self, registry: Registry) -> u16 {
+        let value = self.registries[registry];
+        u16::from_be_bytes(value)
     }
 
     pub fn write_i16(&mut self, registry: Registry, mut value: i16) {
-        if let Some(registry) = self.registries.get_mut(registry) {
-            *registry = i16::to_be_bytes(value)
-        }
+        self.registries[registry] = i16::to_be_bytes(value)
     }
 
     pub fn write_u16(&mut self, registry: Registry, mut value: u16) {
-        if let Some(registry) = self.registries.get_mut(registry) {
-            *registry = u16::to_be_bytes(value)
-        }
+        self.registries[registry] = u16::to_be_bytes(value)
     }
 }

@@ -1,8 +1,8 @@
 mod instructions;
 mod registries;
 
-use std::{error::Error, fs::File, os::unix::prelude::FileExt, fmt::Display};
-use instructions::{Instruction, };
+use std::{error::Error, fs::File, os::unix::prelude::FileExt, fmt::Display, mem};
+use instructions::Instruction;
 use crate::emulator::registries::Value;
 
 use self::registries::{RegistryBank, Registry};
@@ -77,44 +77,21 @@ impl Emulator {
             }
 
             'inner: for i in 0..instructions {
-                let instruction = Instruction::from([
+                let instruction = Instruction::try_from([
                     self.buffer[i * 4],
                     self.buffer[i * 4 + 1],
                     self.buffer[i * 4 + 2],
                     self.buffer[i * 4 + 3],
-                ]);
+                ])?;
 
                 match instruction {
                     Instruction::NOOP => continue 'inner,
                     Instruction::HALT => break 'run,
-                    Instruction::JUMP(address, offset) => { 
-                        let address = if let Some(x) = self.registries.read(address) {
-                            (x + offset) as u64
-                        } else {
-                            break 'run // should return error
-                        };
+                    Instruction::JUMP(address, condition_1, condition_2, offset) => {
+                        let val_1 = self.registries.read_u16(condition_1);
+                        let val_2 = self.registries.read_u16(condition_2);
 
-                        self.cursor = address;
-                        continue 'run
-                    },
-                    Instruction::FORK(address, condition_1, condition_2, offset) => {
-                        let condition_1 = if let Some(x) = self.registries.read(condition_1) {
-                            x
-                        } else {
-                            break 'run // should return error
-                        };
-
-                        let condition_2 = if let Some(x) = self.registries.read(condition_2) {
-                            x
-                        } else {
-                            break 'run // should return error
-                        };
-
-                        let address = if let Some(x) = self.registries.read(address) {
-                            (x + offset) as u64
-                        } else {
-                            break 'run // should return error
-                        };
+                        let address = (self.registries.read_u16(address) + offset) as u64;
 
                         if condition_1 == condition_2 {
                             self.cursor = address;
@@ -123,11 +100,6 @@ impl Emulator {
 
                         continue 'inner
                     },
-                    Instruction::LOAD(registry, address, offset) => {
-
-                    },
-                    Instruction::POOL(_, _, _) => todo!(),
-                    Instruction::COUT(_) => todo!(),
                     Instruction::IOUT(_) => todo!(),
                     Instruction::IADD(res_reg, a_reg, b_reg, immediate) => {
                         let a = self.registries.read_i16(a_reg);
