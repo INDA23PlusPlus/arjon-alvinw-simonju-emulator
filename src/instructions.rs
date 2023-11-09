@@ -16,25 +16,24 @@ const IMUL: InstructionType = 10;
 const IDIV: InstructionType = 11;
 
 pub type Registry = usize;
-pub type UnsignedImmediate = u16;
-pub type SignedImmediate = i16;
+pub type Immediate = u16;
 
 pub enum Instruction {
     NOOP,
     HALT,
 
-    JUMP(Registry, UnsignedImmediate),
-    FORK(Registry, Registry, Registry, UnsignedImmediate),
-    LOAD(Registry, Registry, UnsignedImmediate),
-    POOL(Registry, Registry, UnsignedImmediate),
+    JUMP(Registry, Immediate), // u16
+    FORK(Registry, Registry, Registry, Immediate), // u16
+    LOAD(Registry, Registry, Immediate), // u16
+    POOL(Registry, Registry, Immediate), // u16
 
     COUT(Registry),
     IOUT(Registry),
 
-    IADD(Registry, Registry, Registry, SignedImmediate),
-    ISUB(Registry, Registry, Registry, SignedImmediate),
-    IMUL(Registry, Registry, Registry, SignedImmediate),
-    IDIV(Registry, Registry, Registry, SignedImmediate),
+    IADD(Registry, Registry, Registry, Immediate), // i16
+    ISUB(Registry, Registry, Registry, Immediate), // i16
+    IMUL(Registry, Registry, Registry, Immediate), // i16
+    IDIV(Registry, Registry, Registry, Immediate), // i16
 
     ERROR,
 }
@@ -85,7 +84,7 @@ impl From<[u8; 4]> for Instruction {
                 (value[0] & REGISTRY_1) as usize, 
                 (value[1] & REGISTRY_2 >> 4) as usize,
                 (value[1] & REGISTRY_3) as usize, 
-                i16::from_be_bytes([value[2], value[3]])
+                u16::from_be_bytes([value[2], value[3]])
             ),
             IMUL => Instruction::IMUL(
                 (value[0] & REGISTRY_1) as usize, 
