@@ -87,6 +87,8 @@ impl Emulator {
                     self.buffer[i * 4 + 2],
                     self.buffer[i * 4 + 3],
                 ]);
+                // uncomment for debugging
+                // println!("{}: {}", i, instruction);
 
                 match instruction {
                     Instruction::NOOP => (),

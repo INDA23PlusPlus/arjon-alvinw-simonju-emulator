@@ -60,7 +60,7 @@ impl From<[u8; 4]> for Instruction {
             HALT => Instruction::HALT,
             JUMP => Instruction::JUMP(
                 (value[0] & REGISTRY_1) as Registry, 
-                (value[1] & REGISTRY_2 >> 4) as Registry,
+                ((value[1] & REGISTRY_2) >> 4) as Registry,
                 (value[1] & REGISTRY_3) as Registry, 
                 AddressImmediate::from_be_bytes([value[2], value[3]])
             ),
@@ -69,25 +69,25 @@ impl From<[u8; 4]> for Instruction {
             ),
             IADD => Instruction::IADD(
                 (value[0] & REGISTRY_1) as Registry, 
-                (value[1] & REGISTRY_2 >> 4) as Registry,
+                ((value[1] & REGISTRY_2) >> 4) as Registry,
                 (value[1] & REGISTRY_3) as Registry, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             ISUB => Instruction::ISUB(
                 (value[0] & REGISTRY_1) as Registry, 
-                (value[1] & REGISTRY_2 >> 4) as Registry,
+                ((value[1] & REGISTRY_2) >> 4) as Registry,
                 (value[1] & REGISTRY_3) as Registry, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             IMUL => Instruction::IMUL(
                 (value[0] & REGISTRY_1) as Registry, 
-                (value[1] & REGISTRY_2 >> 4) as Registry,
+                ((value[1] & REGISTRY_2) >> 4) as Registry,
                 (value[1] & REGISTRY_3) as Registry, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             IDIV => Instruction::IDIV(
                 (value[0] & REGISTRY_1) as Registry, 
-                (value[1] & REGISTRY_2 >> 4) as Registry,
+                ((value[1] & REGISTRY_2) >> 4) as Registry,
                 (value[1] & REGISTRY_3) as Registry, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
