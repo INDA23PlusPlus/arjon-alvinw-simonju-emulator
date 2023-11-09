@@ -54,7 +54,8 @@ impl From<[u8; 4]> for Instruction {
         const REGISTRY_2: u8 = 0b1111_0000;
         const REGISTRY_3: u8 = 0b0000_1111;
 
-        match value[0] & INSTRUCTION {
+        let val = (value[0] & INSTRUCTION) >> 4;
+        match val {
             NOOP => Instruction::NOOP,
             HALT => Instruction::HALT,
             JUMP => Instruction::JUMP(

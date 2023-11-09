@@ -114,7 +114,7 @@ impl Emulator {
                             .read_i16(printable_registry)
                             .ok_or(EmulatorError::InvalidRegistry(printable_registry))?;
 
-                        print!("{}", printable);
+                        println!("{}", printable);
                     },
                     Instruction::IADD(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
                         let left_operand = self.registries
