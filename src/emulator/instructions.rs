@@ -16,6 +16,7 @@ const IDIV: u8 = 7;
 type AddressImmediate = u16;
 type IntegerImmediate = i16;
 
+#[derive(Debug)]
 pub enum Instruction {
     NOOP,
     HALT,
@@ -57,36 +58,36 @@ impl From<[u8; 4]> for Instruction {
             NOOP => Instruction::NOOP,
             HALT => Instruction::HALT,
             JUMP => Instruction::JUMP(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                (value[1] & REGISTRY_3) as usize, 
+                (value[0] & REGISTRY_1) as Registry, 
+                (value[1] & REGISTRY_2 >> 4) as Registry,
+                (value[1] & REGISTRY_3) as Registry, 
                 AddressImmediate::from_be_bytes([value[2], value[3]])
             ),
             IOUT => Instruction::IOUT(
-                (value[0] & REGISTRY_1) as usize,
+                (value[0] & REGISTRY_1) as Registry,
             ),
             IADD => Instruction::IADD(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                (value[1] & REGISTRY_3) as usize, 
+                (value[0] & REGISTRY_1) as Registry, 
+                (value[1] & REGISTRY_2 >> 4) as Registry,
+                (value[1] & REGISTRY_3) as Registry, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             ISUB => Instruction::ISUB(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                (value[1] & REGISTRY_3) as usize, 
+                (value[0] & REGISTRY_1) as Registry, 
+                (value[1] & REGISTRY_2 >> 4) as Registry,
+                (value[1] & REGISTRY_3) as Registry, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             IMUL => Instruction::IMUL(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                (value[1] & REGISTRY_3) as usize, 
+                (value[0] & REGISTRY_1) as Registry, 
+                (value[1] & REGISTRY_2 >> 4) as Registry,
+                (value[1] & REGISTRY_3) as Registry, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             IDIV => Instruction::IDIV(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                (value[1] & REGISTRY_3) as usize, 
+                (value[0] & REGISTRY_1) as Registry, 
+                (value[1] & REGISTRY_2 >> 4) as Registry,
+                (value[1] & REGISTRY_3) as Registry, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
             _ => Instruction::ERROR,

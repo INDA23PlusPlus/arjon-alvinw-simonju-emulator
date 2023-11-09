@@ -7,6 +7,7 @@ use crate::emulator::registries::Value;
 
 use self::registries::{RegistryBank, Registry};
 
+#[derive(Debug)]
 enum EmulatorError {
     InvalidInstruction(Instruction),
     InvalidRegistry(Registry),
@@ -23,21 +24,7 @@ impl Display for EmulatorError {
     }
 }
 
-impl Error for EmulatorError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
-    }
-
-    fn description(&self) -> &str {
-        "description() is deprecated; use Display"
-    }
-
-    fn cause(&self) -> Option<&dyn Error> {
-        self.source()
-    }
-
-    fn provide<'a>(&'a self, demand: &mut std::any::Demand<'a>) {}
-}
+impl Error for EmulatorError {}
 
 struct Emulator {
     file: File,
@@ -73,10 +60,10 @@ impl Emulator {
             let instructions = self.file.read_at(&mut self.buffer, self.cursor * 4)? / 4;
 
             if instructions == 0 {
-                return Err(EmulatorError::UnexpectedEndOfFile)
+                return Err(Box::new(EmulatorError::UnexpectedEndOfFile))
             }
 
-            'inner: for i in 0..instructions {
+            for i in 0..instructions {
                 let instruction = Instruction::from([
                     self.buffer[i * 4],
                     self.buffer[i * 4 + 1],
@@ -85,49 +72,26 @@ impl Emulator {
                 ]);
 
                 match instruction {
-                    Instruction::NOOP => continue 'inner,
+                    Instruction::NOOP => (),
                     Instruction::HALT => break 'run,
-                    Instruction::JUMP(address, offset) => { 
-                        let address = if let Some(x) = self.registries.read(address) {
-                            (x + offset) as u64
-                        } else {
-                            break 'run // should return error
-                        };
+                    Instruction::JUMP(address_registry, comparison_registry_left, comparison_registry_right, address_offset) => { 
+                        let address = (self.registries
+                            .read_u16(address_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(address_registry)))? + address_offset) as u64;
 
-                        self.cursor = address;
-                        continue 'run
-                    },
-                    Instruction::FORK(address, condition_1, condition_2, offset) => {
-                        let condition_1 = if let Some(x) = self.registries.read(condition_1) {
-                            x
-                        } else {
-                            break 'run // should return error
-                        };
+                        let comparison_left = self.registries
+                            .read_i16(address_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(address_registry)))?;
 
-                        let condition_2 = if let Some(x) = self.registries.read(condition_2) {
-                            x
-                        } else {
-                            break 'run // should return error
-                        };
+                        let comparison_right = self.registries
+                            .read_i16(address_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(address_registry)))?;
 
-                        let address = if let Some(x) = self.registries.read(address) {
-                            (x + offset) as u64
-                        } else {
-                            break 'run // should return error
-                        };
-
-                        if condition_1 == condition_2 {
+                        if comparison_left == comparison_right {
                             self.cursor = address;
                             continue 'run
                         }
-
-                        continue 'inner
                     },
-                    Instruction::LOAD(registry, address, offset) => {
-
-                    },
-                    Instruction::POOL(_, _, _) => todo!(),
-                    Instruction::COUT(_) => todo!(),
                     Instruction::IOUT(_) => todo!(),
                     Instruction::IADD(res_reg, a_reg, b_reg, immediate) => {
                         let a = self.registries.read_i16(a_reg);
