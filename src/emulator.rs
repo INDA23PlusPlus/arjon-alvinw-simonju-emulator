@@ -102,7 +102,11 @@ impl Emulator {
                         }
                     },
                     Instruction::IOUT(printable_registry) => {
+                        let printable = self.registries
+                            .read_i16(printable_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(printable_registry)))?;
 
+                        print!("{}", printable);
                     },
                     Instruction::IADD(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
                         let left_operand = self.registries
@@ -115,7 +119,7 @@ impl Emulator {
 
                         let result = left_operand + right_operand + right_right_operand_immediate;
 
-                        self.registries.write_i16(result_registry, result);
+                        self.registries.write_i16(result_registry, result)?;
                     },
                     Instruction::ISUB(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
                         let left_operand = self.registries
@@ -128,7 +132,7 @@ impl Emulator {
 
                         let result = left_operand - right_operand - right_right_operand_immediate;
 
-                        self.registries.write_i16(result_registry, result);
+                        self.registries.write_i16(result_registry, result)?;
                     },
                     Instruction::IMUL(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
                         let left_operand = self.registries
@@ -141,7 +145,7 @@ impl Emulator {
 
                         let result = left_operand * right_operand * right_right_operand_immediate;
 
-                        self.registries.write_i16(result_registry, result);
+                        self.registries.write_i16(result_registry, result)?;
                     },
                     Instruction::IDIV(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
                         let left_operand = self.registries
@@ -154,7 +158,7 @@ impl Emulator {
 
                         let result = left_operand / right_operand / right_right_operand_immediate;
 
-                        self.registries.write_i16(result_registry, result);
+                        self.registries.write_i16(result_registry, result)?;
                     },
                     Instruction::ERROR => break 'run, // should return error
                 }
