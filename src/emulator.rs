@@ -26,7 +26,7 @@ impl Display for EmulatorError {
 
 impl Error for EmulatorError {}
 
-struct Emulator {
+pub(super) struct Emulator {
     file: File,
     buffer: [u8; 1024],
     registries: RegistryBank<16>,
