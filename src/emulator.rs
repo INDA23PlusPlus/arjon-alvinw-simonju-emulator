@@ -8,7 +8,7 @@ use crate::emulator::registries::Value;
 use self::registries::{RegistryBank, Registry};
 
 #[derive(Debug)]
-enum EmulatorError {
+pub enum EmulatorError {
     InvalidInstruction(Instruction),
     InvalidRegistry(Registry),
     UnexpectedEndOfFile,
