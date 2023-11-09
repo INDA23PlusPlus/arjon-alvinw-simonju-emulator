@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::registries::Registry;
+use super::registries::{Registry, Value};
 
 // Instruction types
 const NOOP: u8 = 0;
@@ -28,7 +28,7 @@ pub enum Instruction {
     IMUL(Registry, Registry, Registry, IntegerImmediate),
     IDIV(Registry, Registry, Registry, IntegerImmediate),
 
-    ERROR,
+    ERROR(u8),
 }
 
 impl Display for Instruction {
@@ -42,7 +42,7 @@ impl Display for Instruction {
             Instruction::ISUB(r1, r2, r3, i) => write!(f, "ISUB: {}, {}, {}, {}", r1, r2, r3, i),
             Instruction::IMUL(r1, r2, r3, i) => write!(f, "IMUL: {}, {}, {}, {}", r1, r2, r3, i),
             Instruction::IDIV(r1, r2, r3, i) => write!(f, "IDIV: {}, {}, {}, {}", r1, r2, r3, i),
-            Instruction::ERROR => write!(f, "Unrecognized instruction"),
+            Instruction::ERROR(e) => write!(f, "Unrecognized instruction: {}", e),
         }
     }
 }
@@ -90,7 +90,7 @@ impl From<[u8; 4]> for Instruction {
                 (value[1] & REGISTRY_3) as Registry, 
                 i16::from_be_bytes([value[2], value[3]])
             ),
-            _ => Instruction::ERROR,
+            e => Instruction::ERROR(e),
         }
         
     }

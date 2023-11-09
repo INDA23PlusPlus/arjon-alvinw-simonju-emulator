@@ -5,15 +5,16 @@ use std::{error::Error, fs::File, os::unix::prelude::FileExt, fmt::Display};
 use instructions::Instruction;
 use crate::emulator::registries::Value;
 
-use self::registries::{RegistryBank, Registry};
+use self::registries::{RegistryBank, Registry, RegistryBankError};
 
 #[derive(Debug)]
 pub enum EmulatorError {
-    InvalidInstruction(Instruction),
+    InvalidInstruction(u8),
     InvalidRegistry(Registry),
     UnexpectedEndOfFile,
     // DivZeroError
     IOError(std::io::Error),
+    RegistryBankError(RegistryBankError),
 }
 
 impl Display for EmulatorError {
@@ -23,6 +24,7 @@ impl Display for EmulatorError {
             EmulatorError::InvalidRegistry(r) => write!(f, "Invalid registry: {}", r),
             EmulatorError::UnexpectedEndOfFile => write!(f, "Unexpected end of file"),
             EmulatorError::IOError(err) => write!(f, "Failed to read: {}", err),
+            EmulatorError::RegistryBankError(err) => write!(f, "Failed to write: {}", err)
         }
     }
 }
@@ -32,6 +34,12 @@ impl Error for EmulatorError {}
 impl From<std::io::Error> for EmulatorError {
     fn from(err: std::io::Error) -> Self {
         Self::IOError(err)
+    }
+}
+
+impl From<RegistryBankError> for EmulatorError {
+    fn from(err: RegistryBankError) -> Self {
+        Self::RegistryBankError(err)
     }
 }
 
@@ -89,12 +97,12 @@ impl Emulator {
                             .ok_or(EmulatorError::InvalidRegistry(address_registry))? + address_offset) as u64;
 
                         let comparison_left = self.registries
-                            .read_i16(address_registry)
-                            .ok_or(EmulatorError::InvalidRegistry(address_registry))?;
+                            .read_i16(comparison_registry_left)
+                            .ok_or(EmulatorError::InvalidRegistry(comparison_registry_left))?;
 
                         let comparison_right = self.registries
-                            .read_i16(address_registry)
-                            .ok_or(EmulatorError::InvalidRegistry(address_registry))?;
+                            .read_i16(comparison_registry_right)
+                            .ok_or(EmulatorError::InvalidRegistry(comparison_registry_right))?;
 
                         if comparison_left == comparison_right {
                             self.cursor = address;
@@ -160,7 +168,7 @@ impl Emulator {
 
                         self.registries.write_i16(result_registry, result)?;
                     },
-                    Instruction::ERROR => break 'run, // should return error
+                    Instruction::ERROR(e) => return Err(EmulatorError::InvalidInstruction(e))
                 }
             }
         }
