@@ -1,8 +1,6 @@
 mod emulator;
-
 use std::error::Error;
 use std::fs;
-use std::io::{self, ErrorKind};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let file_path = "";
