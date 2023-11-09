@@ -104,7 +104,7 @@ impl Emulator {
                     Instruction::IOUT(printable_registry) => {
                         let printable = self.registries
                             .read_i16(printable_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(printable_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(printable_registry))?;
 
                         print!("{}", printable);
                     },
