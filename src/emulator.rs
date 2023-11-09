@@ -94,10 +94,30 @@ impl Emulator {
                     Instruction::POOL(_, _, _) => todo!(),
                     Instruction::COUT(_) => todo!(),
                     Instruction::IOUT(_) => todo!(),
-                    Instruction::IADD(_, _, _, _) => todo!(),
-                    Instruction::ISUB(_, _, _, _) => todo!(),
-                    Instruction::IMUL(_, _, _, _) => todo!(),
-                    Instruction::IDIV(_, _, _, _) => todo!(),
+                    Instruction::IADD(res_reg, a_reg, b_reg, immediate) => {
+                        let a = self.registries.read_i16(a_reg);
+                        let b = self.registries.read_i16(a_reg);
+                        let res = a + b + immediate;
+                        self.registries.write_i16(res_reg, res);
+                    },
+                    Instruction::ISUB(res_reg, a_reg, b_reg, immediate) => {
+                        let a = self.registries.read_i16(a_reg);
+                        let b = self.registries.read_i16(a_reg);
+                        let res = a - b - immediate;
+                        self.registries.write_i16(res_reg, res);
+                    },
+                    Instruction::IMUL(res_reg, a_reg, b_reg, immediate) => {
+                        let a = self.registries.read_i16(a_reg);
+                        let b = self.registries.read_i16(a_reg);
+                        let res = a * b * immediate;
+                        self.registries.write_i16(res_reg, res);
+                    },
+                    Instruction::IDIV(res_reg, a_reg, b_reg, immediate) => {
+                        let a = self.registries.read_i16(a_reg);
+                        let b = self.registries.read_i16(a_reg);
+                        let res = a / b / immediate;
+                        self.registries.write_i16(res_reg, res);
+                    },
                     Instruction::ERROR => break 'run, // should return error
                 }
             }
