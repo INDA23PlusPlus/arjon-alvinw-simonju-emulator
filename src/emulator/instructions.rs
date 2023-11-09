@@ -1,3 +1,5 @@
+use super::registries::Registry;
+
 type InstructionType = u8;
 
 const NOOP: InstructionType = 0;
@@ -15,16 +17,15 @@ const ISUB: InstructionType = 9;
 const IMUL: InstructionType = 10;
 const IDIV: InstructionType = 11;
 
-pub type Registry = usize;
-pub type UnsignedImmediate = u16;
-pub type SignedImmediate = i16;
+type AddressOffset = u16;
+type Integer = i16;
 
 pub enum Instruction {
     NOOP,
     HALT,
 
-    JUMP(Registry, UnsignedImmediate),
-    FORK(Registry, Registry, Registry, UnsignedImmediate),
+    JUMP(Registry, AddressOffset),
+    FORK(Registry, Registry, Registry, AddressOffset),
     LOAD(Registry, Registry, UnsignedImmediate),
     POOL(Registry, Registry, UnsignedImmediate),
 

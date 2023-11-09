@@ -1,4 +1,5 @@
 mod instructions;
+mod registries;
 
 use std::{error::Error, fs::File, os::unix::prelude::FileExt, mem};
 use instructions::{Instruction, Registry};
