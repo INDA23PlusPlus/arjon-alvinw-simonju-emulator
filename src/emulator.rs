@@ -2,7 +2,7 @@ mod instructions;
 mod registries;
 
 use std::{error::Error, fs::File, os::unix::prelude::FileExt, fmt::Display};
-use instructions::{Instruction, };
+use instructions::Instruction;
 use crate::emulator::registries::Value;
 
 use self::registries::{RegistryBank, Registry};
@@ -12,6 +12,8 @@ enum EmulatorError {
     InvalidInstruction(Instruction),
     InvalidRegistry(Registry),
     UnexpectedEndOfFile,
+    // DivZeroError
+    // IOError
 }
 
 impl Display for EmulatorError {
@@ -92,30 +94,60 @@ impl Emulator {
                             continue 'run
                         }
                     },
-                    Instruction::IOUT(_) => todo!(),
-                    Instruction::IADD(res_reg, a_reg, b_reg, immediate) => {
-                        let a = self.registries.read_i16(a_reg);
-                        let b = self.registries.read_i16(a_reg);
-                        let res = a + b + immediate;
-                        self.registries.write_i16(res_reg, res);
+                    Instruction::IOUT(printable_registry) => {
+
                     },
-                    Instruction::ISUB(res_reg, a_reg, b_reg, immediate) => {
-                        let a = self.registries.read_i16(a_reg);
-                        let b = self.registries.read_i16(a_reg);
-                        let res = a - b - immediate;
-                        self.registries.write_i16(res_reg, res);
+                    Instruction::IADD(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
+                        let left_operand = self.registries
+                            .read_i16(left_operand_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(left_operand_registry)))?;
+
+                        let right_operand = self.registries
+                            .read_i16(right_operand_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(right_operand_registry)))?;
+
+                        let result = left_operand + right_operand + right_right_operand_immediate;
+
+                        self.registries.write_i16(result_registry, result);
                     },
-                    Instruction::IMUL(res_reg, a_reg, b_reg, immediate) => {
-                        let a = self.registries.read_i16(a_reg);
-                        let b = self.registries.read_i16(a_reg);
-                        let res = a * b * immediate;
-                        self.registries.write_i16(res_reg, res);
+                    Instruction::ISUB(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
+                        let left_operand = self.registries
+                            .read_i16(left_operand_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(left_operand_registry)))?;
+
+                        let right_operand = self.registries
+                            .read_i16(right_operand_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(right_operand_registry)))?;
+
+                        let result = left_operand - right_operand - right_right_operand_immediate;
+
+                        self.registries.write_i16(result_registry, result);
                     },
-                    Instruction::IDIV(res_reg, a_reg, b_reg, immediate) => {
-                        let a = self.registries.read_i16(a_reg);
-                        let b = self.registries.read_i16(a_reg);
-                        let res = a / b / immediate;
-                        self.registries.write_i16(res_reg, res);
+                    Instruction::IMUL(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
+                        let left_operand = self.registries
+                            .read_i16(left_operand_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(left_operand_registry)))?;
+
+                        let right_operand = self.registries
+                            .read_i16(right_operand_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(right_operand_registry)))?;
+
+                        let result = left_operand * right_operand * right_right_operand_immediate;
+
+                        self.registries.write_i16(result_registry, result);
+                    },
+                    Instruction::IDIV(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
+                        let left_operand = self.registries
+                            .read_i16(left_operand_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(left_operand_registry)))?;
+
+                        let right_operand = self.registries
+                            .read_i16(right_operand_registry)
+                            .ok_or(Box::new(EmulatorError::InvalidRegistry(right_operand_registry)))?;
+
+                        let result = left_operand / right_operand / right_right_operand_immediate;
+
+                        self.registries.write_i16(result_registry, result);
                     },
                     Instruction::ERROR => break 'run, // should return error
                 }
