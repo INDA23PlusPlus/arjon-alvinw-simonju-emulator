@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use super::registries::Registry;
 
 // Instruction types
@@ -26,6 +28,22 @@ pub enum Instruction {
     IDIV(Registry, Registry, Registry, IntegerImmediate),
 
     ERROR,
+}
+
+impl Display for Instruction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Instruction::NOOP => write!(f, "NOOP"),
+            Instruction::HALT => write!(f, "HALT"),
+            Instruction::JUMP(r1, r2, r3, i) => write!(f, "JUMP: {}, {}, {}, {}", r1, r2, r3, i),
+            Instruction::IOUT(r) => write!(f, "IOUT: {}", r),
+            Instruction::IADD(r1, r2, r3, i) => write!(f, "IADD: {}, {}, {}, {}", r1, r2, r3, i),
+            Instruction::ISUB(r1, r2, r3, i) => write!(f, "ISUB: {}, {}, {}, {}", r1, r2, r3, i),
+            Instruction::IMUL(r1, r2, r3, i) => write!(f, "IMUL: {}, {}, {}, {}", r1, r2, r3, i),
+            Instruction::IDIV(r1, r2, r3, i) => write!(f, "IDIV: {}, {}, {}, {}", r1, r2, r3, i),
+            Instruction::ERROR => write!(f, "Unrecognized instruction"),
+        }
+    }
 }
 
 impl From<[u8; 4]> for Instruction {

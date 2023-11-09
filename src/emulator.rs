@@ -1,9 +1,43 @@
 mod instructions;
 mod registries;
 
-use std::{error::Error, fs::File, os::unix::prelude::FileExt, mem};
+use std::{error::Error, fs::File, os::unix::prelude::FileExt, fmt::Display};
 use instructions::{Instruction, };
-use self::registries::RegistryBank;
+use crate::emulator::registries::Value;
+
+use self::registries::{RegistryBank, Registry};
+
+enum EmulatorError {
+    InvalidInstruction(Instruction),
+    InvalidRegistry(Registry),
+    UnexpectedEndOfFile,
+}
+
+impl Display for EmulatorError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EmulatorError::InvalidInstruction(i) => write!(f, "Invalid instruction: {}", i),
+            EmulatorError::InvalidRegistry(r) => write!(f, "Invalid registry: {}", r),
+            EmulatorError::UnexpectedEndOfFile => write!(f, "Unexpected end of file"),
+        }
+    }
+}
+
+impl Error for EmulatorError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn Error> {
+        self.source()
+    }
+
+    fn provide<'a>(&'a self, demand: &mut std::any::Demand<'a>) {}
+}
 
 struct Emulator {
     file: File,
@@ -14,15 +48,16 @@ struct Emulator {
 
 impl Emulator {
     pub fn new(file: File) -> Self {
-        const ZERO: Word = 0;
-        const POSU: Word = 1;
-        const NEGU: Word = unsafe { mem::transmute_copy(&(-1 as i16))};
+        const ZERO: Value = [0, 0];
+        const PONE: Value = [0, 1];
+        const NONE: Value = i16::to_be_bytes(-1);
+        const RAND: Value = [0, 0];
 
         let registries = RegistryBank::<16>::new( [
-            ZERO, POSU, NEGU, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0, 
-            0, 0, 0, 0
+            ZERO,   PONE,   NONE,   RAND,
+            [0, 0], [0, 0], [0, 0], [0, 0],
+            [0, 0], [0, 0], [0, 0], [0, 0], 
+            [0, 0], [0, 0], [0, 0], [0, 0]
         ]);
 
         Self {
@@ -35,13 +70,13 @@ impl Emulator {
 
     pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
         'run: loop {
-            let longs = self.file.read_at(&mut self.buffer, self.cursor * 4)? / 4;
+            let instructions = self.file.read_at(&mut self.buffer, self.cursor * 4)? / 4;
 
-            if longs == 0 {
-                break // should return error
+            if instructions == 0 {
+                return Err(EmulatorError::UnexpectedEndOfFile)
             }
 
-            'inner: for i in 0..longs {
+            'inner: for i in 0..instructions {
                 let instruction = Instruction::from([
                     self.buffer[i * 4],
                     self.buffer[i * 4 + 1],

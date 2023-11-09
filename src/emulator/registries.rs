@@ -1,4 +1,4 @@
-pub(super) type Value = [u8; 2];
+pub(super) type Value = [u8; 2]; // Big endian
 pub(super) type Registry = usize;
 
 pub(super) struct RegistryBank<const N: usize> {
@@ -8,7 +8,7 @@ pub(super) struct RegistryBank<const N: usize> {
 impl<const N: usize> RegistryBank<{N}> {
     pub fn new(array: [Value; N]) -> Self {
         Self {
-            registries: [[0, 0]; N]
+            registries: array
         }
     }
 
