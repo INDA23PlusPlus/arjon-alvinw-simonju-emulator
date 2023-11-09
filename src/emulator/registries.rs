@@ -23,15 +23,16 @@ impl<const N: usize> RegistryBank<{N}> {
     }
 
     pub fn write_i16(&mut self, registry: Registry, mut value: i16) -> Result<(), ()> {
-        match self.registries.get_mut(registry) {
-            Some(r) => r = i16::to_be_bytes(value)
-            None => Err(()),
-        }
-
+        let mut reg = self.registries.get_mut(registry).unwrap();
+        let write = i16::to_be_bytes(value);
+        reg.copy_from_slice(&write);
         Ok(())
     }
 
-    pub fn write_u16(&mut self, registry: Registry, mut value: u16) {
-        self.registries.get_mut(registry) = u16::to_be_bytes(value)
+    pub fn write_u16(&mut self, registry: Registry, mut value: u16) -> Result<(), ()> {
+        let mut reg = self.registries.get_mut(registry).unwrap();
+        let write = u16::to_be_bytes(value);
+        reg.copy_from_slice(&write);
+        Ok(())
     }
 }
