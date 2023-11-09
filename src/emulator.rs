@@ -13,7 +13,7 @@ enum EmulatorError {
     InvalidRegistry(Registry),
     UnexpectedEndOfFile,
     // DivZeroError
-    // IOError
+    IOError(std::io::Error),
 }
 
 impl Display for EmulatorError {
@@ -22,11 +22,18 @@ impl Display for EmulatorError {
             EmulatorError::InvalidInstruction(i) => write!(f, "Invalid instruction: {}", i),
             EmulatorError::InvalidRegistry(r) => write!(f, "Invalid registry: {}", r),
             EmulatorError::UnexpectedEndOfFile => write!(f, "Unexpected end of file"),
+            EmulatorError::IOError(err) => write!(f, "Failed to read: {}", err),
         }
     }
 }
 
 impl Error for EmulatorError {}
+
+impl From<std::io::Error> for EmulatorError {
+    fn from(err: std::io::Error) -> Self {
+        Self::IOError(err)
+    }
+}
 
 pub(super) struct Emulator {
     file: File,
@@ -57,12 +64,12 @@ impl Emulator {
         }
     }
 
-    pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn run(&mut self) -> Result<(), EmulatorError> {
         'run: loop {
             let instructions = self.file.read_at(&mut self.buffer, self.cursor * 4)? / 4;
 
             if instructions == 0 {
-                return Err(Box::new(EmulatorError::UnexpectedEndOfFile))
+                return Err(EmulatorError::UnexpectedEndOfFile)
             }
 
             for i in 0..instructions {
@@ -79,15 +86,15 @@ impl Emulator {
                     Instruction::JUMP(address_registry, comparison_registry_left, comparison_registry_right, address_offset) => { 
                         let address = (self.registries
                             .read_u16(address_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(address_registry)))? + address_offset) as u64;
+                            .ok_or(EmulatorError::InvalidRegistry(address_registry))? + address_offset) as u64;
 
                         let comparison_left = self.registries
                             .read_i16(address_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(address_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(address_registry))?;
 
                         let comparison_right = self.registries
                             .read_i16(address_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(address_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(address_registry))?;
 
                         if comparison_left == comparison_right {
                             self.cursor = address;
@@ -100,11 +107,11 @@ impl Emulator {
                     Instruction::IADD(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
                         let left_operand = self.registries
                             .read_i16(left_operand_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(left_operand_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(left_operand_registry))?;
 
                         let right_operand = self.registries
                             .read_i16(right_operand_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(right_operand_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(right_operand_registry))?;
 
                         let result = left_operand + right_operand + right_right_operand_immediate;
 
@@ -113,11 +120,11 @@ impl Emulator {
                     Instruction::ISUB(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
                         let left_operand = self.registries
                             .read_i16(left_operand_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(left_operand_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(left_operand_registry))?;
 
                         let right_operand = self.registries
                             .read_i16(right_operand_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(right_operand_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(right_operand_registry))?;
 
                         let result = left_operand - right_operand - right_right_operand_immediate;
 
@@ -126,11 +133,11 @@ impl Emulator {
                     Instruction::IMUL(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
                         let left_operand = self.registries
                             .read_i16(left_operand_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(left_operand_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(left_operand_registry))?;
 
                         let right_operand = self.registries
                             .read_i16(right_operand_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(right_operand_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(right_operand_registry))?;
 
                         let result = left_operand * right_operand * right_right_operand_immediate;
 
@@ -139,11 +146,11 @@ impl Emulator {
                     Instruction::IDIV(result_registry, left_operand_registry, right_operand_registry, right_right_operand_immediate) => {
                         let left_operand = self.registries
                             .read_i16(left_operand_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(left_operand_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(left_operand_registry))?;
 
                         let right_operand = self.registries
                             .read_i16(right_operand_registry)
-                            .ok_or(Box::new(EmulatorError::InvalidRegistry(right_operand_registry)))?;
+                            .ok_or(EmulatorError::InvalidRegistry(right_operand_registry))?;
 
                         let result = left_operand / right_operand / right_right_operand_immediate;
 
