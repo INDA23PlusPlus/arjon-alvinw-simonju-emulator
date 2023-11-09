@@ -1,7 +1,7 @@
-pub type Value = [u8; 2];
-pub type Registry = usize;
+pub(super) type Value = [u8; 2];
+pub(super) type Registry = usize;
 
-struct RegistryBank<const N: usize> {
+pub(super) struct RegistryBank<const N: usize> {
     registries: [Value; N]
 }
 

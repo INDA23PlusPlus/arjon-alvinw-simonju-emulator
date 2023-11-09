@@ -1,41 +1,29 @@
 use super::registries::Registry;
 
-type InstructionType = u8;
+// Instruction types
+const NOOP: u8 = 0;
+const HALT: u8 = 1;
+const IOUT: u8 = 2;
+const JUMP: u8 = 3;
 
-const NOOP: InstructionType = 0;
-const HALT: InstructionType = 1;
-const COUT: InstructionType = 2;
-const IOUT: InstructionType = 3;
+const IADD: u8 = 4;
+const ISUB: u8 = 5;
+const IMUL: u8 = 6;
+const IDIV: u8 = 7;
 
-const JUMP: InstructionType = 4;
-const FORK: InstructionType = 5;
-const LOAD: InstructionType = 6;
-const POOL: InstructionType = 7;
-
-const IADD: InstructionType = 8;
-const ISUB: InstructionType = 9;
-const IMUL: InstructionType = 10;
-const IDIV: InstructionType = 11;
-
-type AddressOffset = u16;
-type Integer = i16;
+type AddressImmediate = u16;
+type IntegerImmediate = i16;
 
 pub enum Instruction {
     NOOP,
     HALT,
-
-    JUMP(Registry, AddressOffset),
-    FORK(Registry, Registry, Registry, AddressOffset),
-    LOAD(Registry, Registry, UnsignedImmediate),
-    POOL(Registry, Registry, UnsignedImmediate),
-
-    COUT(Registry),
+    JUMP(Registry, Registry, Registry, AddressImmediate),
     IOUT(Registry),
 
-    IADD(Registry, Registry, Registry, SignedImmediate),
-    ISUB(Registry, Registry, Registry, SignedImmediate),
-    IMUL(Registry, Registry, Registry, SignedImmediate),
-    IDIV(Registry, Registry, Registry, SignedImmediate),
+    IADD(Registry, Registry, Registry, IntegerImmediate),
+    ISUB(Registry, Registry, Registry, IntegerImmediate),
+    IMUL(Registry, Registry, Registry, IntegerImmediate),
+    IDIV(Registry, Registry, Registry, IntegerImmediate),
 
     ERROR,
 }
@@ -52,26 +40,9 @@ impl From<[u8; 4]> for Instruction {
             HALT => Instruction::HALT,
             JUMP => Instruction::JUMP(
                 (value[0] & REGISTRY_1) as usize, 
-                u16::from_be_bytes([value[2], value[3]])
-            ),
-            FORK => Instruction::FORK(
-                (value[0] & REGISTRY_1) as usize, 
                 (value[1] & REGISTRY_2 >> 4) as usize,
                 (value[1] & REGISTRY_3) as usize, 
-                u16::from_be_bytes([value[2], value[3]])
-            ),
-            LOAD => Instruction::LOAD(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                u16::from_be_bytes([value[2], value[3]])
-            ),
-            POOL => Instruction::POOL(
-                (value[0] & REGISTRY_1) as usize, 
-                (value[1] & REGISTRY_2 >> 4) as usize,
-                u16::from_be_bytes([value[2], value[3]])
-            ),
-            COUT => Instruction::COUT(
-                (value[0] & REGISTRY_1) as usize,
+                AddressImmediate::from_be_bytes([value[2], value[3]])
             ),
             IOUT => Instruction::IOUT(
                 (value[0] & REGISTRY_1) as usize,

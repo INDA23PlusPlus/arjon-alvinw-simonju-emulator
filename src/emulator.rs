@@ -2,31 +2,8 @@ mod instructions;
 mod registries;
 
 use std::{error::Error, fs::File, os::unix::prelude::FileExt, mem};
-use instructions::{Instruction, Registry};
-
-type Word = u16;
-struct RegistryBank<const N: usize> {
-    registries: [Word; N]
-}
-
-impl<const N: usize> RegistryBank<{N}> {
-    pub fn new(array: [Word; N]) -> Self {
-        Self {
-            registries: [0; N]
-        }
-    }
-
-    pub fn read(&self, registry: Registry) -> Option<&Word> {
-        let value = self.registries.get(registry)?;
-        Some(&Word::from_be_bytes(value))
-    }
-
-    pub fn write(&mut self, registry: Registry, mut value: Word) {
-        if let Some(registry) = self.registries.get_mut(registry) {
-            *registry = value
-        }
-    }
-}
+use instructions::{Instruction, };
+use self::registries::RegistryBank;
 
 struct Emulator {
     file: File,
