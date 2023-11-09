@@ -1,11 +1,10 @@
+mod emulator;
+
+use std::error::Error;
 use std::fs;
 use std::io::{self, ErrorKind};
 
-#[repr(u8)]
-pub enum Instruction {
-    Halt = 0,
-}
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let file_path = "";
     let prog = fs::read(file_path)?;
     let mut counter: usize = 0;
