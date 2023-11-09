@@ -100,7 +100,9 @@ impl Emulator {
 
                         continue 'inner
                     },
-                    Instruction::IOUT(_) => todo!(),
+                    Instruction::IOUT(reg) => {
+                        println!("{}", self.registries.read_u16(reg));
+                    },
                     Instruction::IADD(res_reg, a_reg, b_reg, immediate) => {
                         let a = self.registries.read_i16(a_reg);
                         let b = self.registries.read_i16(a_reg);
