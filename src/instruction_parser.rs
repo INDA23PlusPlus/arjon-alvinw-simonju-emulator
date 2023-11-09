@@ -2,9 +2,10 @@ use std::{error::Error, fs::File, os::unix::prelude::FileExt, mem};
 
 use crate::instructions::{Instruction, Registry};
 
-type Word = u16;
+type Registry = [u8; 2];
+
 struct RegistryBank<const N: usize> {
-    registries: [Word; N]
+    registries: [Registry; N]
 }
 
 impl<const N: usize> RegistryBank<{N}> {
