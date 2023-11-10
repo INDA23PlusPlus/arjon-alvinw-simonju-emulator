@@ -12,7 +12,7 @@ pub enum EmulatorError {
     InvalidInstruction(u8),
     InvalidRegistry(Registry),
     UnexpectedEndOfFile,
-    // DivZeroError
+    DivisionByZero,
     IOError(std::io::Error),
     RegistryBankError(RegistryBankError),
 }
@@ -23,6 +23,7 @@ impl Display for EmulatorError {
             EmulatorError::InvalidInstruction(i) => write!(f, "Invalid instruction: {}", i),
             EmulatorError::InvalidRegistry(r) => write!(f, "Invalid registry: {}", r),
             EmulatorError::UnexpectedEndOfFile => write!(f, "Unexpected end of file"),
+            EmulatorError::DivisionByZero => write!(f, "Division by zero"),
             EmulatorError::IOError(err) => write!(f, "Failed to read: {}", err),
             EmulatorError::RegistryBankError(err) => write!(f, "Failed to write: {}", err)
         }
@@ -87,8 +88,10 @@ impl Emulator {
                     self.buffer[i * 4 + 2],
                     self.buffer[i * 4 + 3],
                 ]);
-                // uncomment for debugging
-                // println!("{}: {}", i, instruction);
+
+                #[cfg(debug_assertions)] {
+                    println!("{}: {}", i, instruction);
+                }
 
                 match instruction {
                     Instruction::NOOP => (),
@@ -166,6 +169,10 @@ impl Emulator {
                             .read_i16(right_operand_registry)
                             .ok_or(EmulatorError::InvalidRegistry(right_operand_registry))?;
 
+                        if left_operand == 0 || right_operand == 0 || right_right_operand_immediate == 0 {
+                            return Err(EmulatorError::DivisionByZero)
+                        }
+
                         let result = left_operand / right_operand / right_right_operand_immediate;
 
                         self.registries.write_i16(result_registry, result)?;
@@ -173,6 +180,8 @@ impl Emulator {
                     Instruction::ERROR(e) => return Err(EmulatorError::InvalidInstruction(e))
                 }
             }
+            
+            self.cursor += instructions as u64;
         }
 
         Ok(())

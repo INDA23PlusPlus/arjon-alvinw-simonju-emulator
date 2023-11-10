@@ -1,5 +1,4 @@
 mod emulator;
-use std::error::Error;
 use std::fs;
 use emulator::EmulatorError;
 use gen_binary::gen_fibonacci_binary;

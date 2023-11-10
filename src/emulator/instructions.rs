@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::registries::{Registry, Value};
+use super::registries::Registry;
 
 // Instruction types
 const NOOP: u8 = 0;
